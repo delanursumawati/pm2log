@@ -23,12 +23,13 @@ if [ -d "$PM2_LOGS_DIR" ]; then
     mkdir -p "$BACKUP_DIR"
     
     # Copy all log files to backup
-    if [ "$(ls -A $PM2_LOGS_DIR 2>/dev/null)" ]; then
-        cp -r "$PM2_LOGS_DIR"/* "$BACKUP_DIR"/
+    if [ "$(ls -A "$PM2_LOGS_DIR" 2>/dev/null)" ]; then
+        # Use find for more reliable copying
+        find "$PM2_LOGS_DIR" -mindepth 1 -maxdepth 1 -exec cp -r {} "$BACKUP_DIR"/ \;
         echo "Logs successfully copied to $BACKUP_DIR"
         
         # Clear the original logs after copying
-        rm -rf "$PM2_LOGS_DIR"/*
+        find "$PM2_LOGS_DIR" -mindepth 1 -delete
         echo "Original logs cleared"
     else
         echo "No logs found in $PM2_LOGS_DIR"
@@ -40,6 +41,11 @@ fi
 
 # Step 3: Restart all PM2 processes
 echo "Step 3: Restarting all PM2 processes..."
-pm2 restart all
+if command -v pm2 &> /dev/null; then
+    pm2 restart all
+    echo "PM2 processes restarted successfully"
+else
+    echo "Warning: pm2 command not found. Skipping restart."
+fi
 
 echo "Backup completed successfully at $(date)"
