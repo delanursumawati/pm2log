@@ -1,0 +1,45 @@
+#!/bin/bash
+# PM2 Log Backup Script
+# This script backs up PM2 logs to a backup directory and restarts PM2 processes
+
+# Set variables
+PM2_LOGS_DIR="/root/.pm2/logs"
+BACKUP_DIR="/root/.pm2backup/logs"
+
+# Step 1: Delete old backup folder contents if exists
+echo "Step 1: Cleaning up old backup..."
+if [ -d "$BACKUP_DIR" ]; then
+    echo "Removing contents of $BACKUP_DIR"
+    rm -rf "$BACKUP_DIR"/*
+else
+    echo "Backup directory does not exist, creating it..."
+    mkdir -p "$BACKUP_DIR"
+fi
+
+# Step 2: Move logs to backup folder
+echo "Step 2: Moving logs to backup folder..."
+if [ -d "$PM2_LOGS_DIR" ]; then
+    # Create backup directory if it doesn't exist
+    mkdir -p "$BACKUP_DIR"
+    
+    # Copy all log files to backup
+    if [ "$(ls -A $PM2_LOGS_DIR 2>/dev/null)" ]; then
+        cp -r "$PM2_LOGS_DIR"/* "$BACKUP_DIR"/
+        echo "Logs successfully copied to $BACKUP_DIR"
+        
+        # Clear the original logs after copying
+        rm -rf "$PM2_LOGS_DIR"/*
+        echo "Original logs cleared"
+    else
+        echo "No logs found in $PM2_LOGS_DIR"
+    fi
+else
+    echo "PM2 logs directory does not exist: $PM2_LOGS_DIR"
+    exit 1
+fi
+
+# Step 3: Restart all PM2 processes
+echo "Step 3: Restarting all PM2 processes..."
+pm2 restart all
+
+echo "Backup completed successfully at $(date)"
