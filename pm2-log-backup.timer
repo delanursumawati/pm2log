@@ -1,0 +1,13 @@
+[Unit]
+Description=PM2 Log Backup Timer - Runs every 3 days
+Documentation=https://github.com/delanursumawati/pm2log
+
+[Timer]
+# Run every 3 days (72 hours)
+OnBootSec=10min
+OnUnitActiveSec=3d
+# If the system was off when the timer should have triggered, run it on next boot
+Persistent=true
+
+[Install]
+WantedBy=timers.target
