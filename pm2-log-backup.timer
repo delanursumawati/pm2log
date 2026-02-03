@@ -4,8 +4,9 @@ Documentation=https://github.com/delanursumawati/pm2log
 
 [Timer]
 # Run every 3 days at 00:00 WIB (17:00 UTC, since WIB is UTC+7)
-# Days 1, 4, 7, 10, 13, 16, 19, 22, 25, 28 of each month at 17:00 UTC
-OnCalendar=*-*-01,04,07,10,13,16,19,22,25,28 17:00:00
+# The timer will trigger daily at 17:00 UTC, but only run if 3 days have passed since last execution
+OnCalendar=*-*-* 17:00:00
+OnUnitActiveSec=3d
 # If the system was off when the timer should have triggered, run it on next boot
 Persistent=true
 

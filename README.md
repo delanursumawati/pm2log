@@ -72,7 +72,7 @@ The backup process follows these steps:
 
 The timer is configured to:
 - Run every 3 days at 00:00 WIB (17:00 UTC)
-- Specifically runs on days 1, 4, 7, 10, 13, 16, 19, 22, 25, 28 of each month
+- The timer checks daily at 00:00 WIB, but only executes if 3 days have passed since the last run
 - Persist across reboots (if a scheduled backup was missed, it will run on next boot)
 
 ## File Descriptions
