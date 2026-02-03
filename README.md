@@ -71,8 +71,8 @@ The backup process follows these steps:
 3. **Restart PM2 processes**: Executes `pm2 restart all` to restart all PM2-managed processes
 
 The timer is configured to:
-- Run 10 minutes after system boot (first run)
-- Run every 3 days (72 hours) thereafter
+- Run every 3 days at 00:00 WIB (17:00 UTC)
+- Specifically runs on days 1, 4, 7, 10, 13, 16, 19, 22, 25, 28 of each month
 - Persist across reboots (if a scheduled backup was missed, it will run on next boot)
 
 ## File Descriptions
