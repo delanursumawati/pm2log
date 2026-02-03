@@ -37,14 +37,26 @@ if [ -f "$LAST_RUN_FILE" ]; then
     LAST_RUN=$(cat "$LAST_RUN_FILE")
     CURRENT_TIME=$(date +%s)
     TIME_DIFF=$((CURRENT_TIME - LAST_RUN))
-    DAYS_SINCE_LAST_RUN=$(echo "scale=2; $TIME_DIFF / 86400" | bc)
+    # Calculate days with decimal using shell arithmetic (avoiding bc dependency)
+    DAYS_SINCE_LAST_RUN=$((TIME_DIFF / 86400))
+    HOURS_REMAINDER=$(((TIME_DIFF % 86400) / 3600))
     
-    log "Last backup was performed at: $(date -d @$LAST_RUN '+%Y-%m-%d %H:%M:%S')"
-    log "Time since last backup: $DAYS_SINCE_LAST_RUN days"
+    # Format last run date (GNU date)
+    if date --version >/dev/null 2>&1; then
+        LAST_RUN_FORMATTED=$(date -d @$LAST_RUN '+%Y-%m-%d %H:%M:%S')
+        NEXT_RUN_FORMATTED=$(date -d @$((LAST_RUN + THREE_DAYS_IN_SECONDS)) '+%Y-%m-%d %H:%M:%S')
+    else
+        # BSD date (macOS)
+        LAST_RUN_FORMATTED=$(date -r $LAST_RUN '+%Y-%m-%d %H:%M:%S')
+        NEXT_RUN_FORMATTED=$(date -r $((LAST_RUN + THREE_DAYS_IN_SECONDS)) '+%Y-%m-%d %H:%M:%S')
+    fi
+    
+    log "Last backup was performed at: $LAST_RUN_FORMATTED"
+    log "Time since last backup: $DAYS_SINCE_LAST_RUN days and $HOURS_REMAINDER hours"
     
     if [ $TIME_DIFF -lt $THREE_DAYS_IN_SECONDS ]; then
         log "Skipping backup - need 3 days interval (only $DAYS_SINCE_LAST_RUN days have passed)"
-        log "Next backup scheduled after: $(date -d @$((LAST_RUN + THREE_DAYS_IN_SECONDS)) '+%Y-%m-%d %H:%M:%S')"
+        log "Next backup scheduled after: $NEXT_RUN_FORMATTED"
         exit 0
     fi
 else

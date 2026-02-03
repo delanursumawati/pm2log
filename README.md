@@ -69,8 +69,10 @@ sudo tail -f /root/.pm2backup/backup.log
 ### Check last run timestamp
 ```bash
 sudo cat /root/.pm2backup/last_run
-# To see human-readable format
+# To see human-readable format (GNU/Linux)
 sudo date -d @$(cat /root/.pm2backup/last_run)
+# Or on BSD/macOS
+sudo date -r $(cat /root/.pm2backup/last_run)
 ```
 
 ### Stop the timer
@@ -143,8 +145,10 @@ sudo tail -n 50 /root/.pm2backup/backup.log
 ```bash
 # View timestamp file
 sudo cat /root/.pm2backup/last_run
-# Convert to human-readable format
+# Convert to human-readable format (GNU/Linux)
 sudo date -d @$(cat /root/.pm2backup/last_run) '+%Y-%m-%d %H:%M:%S'
+# Or on BSD/macOS
+sudo date -r $(cat /root/.pm2backup/last_run) '+%Y-%m-%d %H:%M:%S'
 ```
 
 ### Test the backup script manually
