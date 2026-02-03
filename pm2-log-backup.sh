@@ -35,6 +35,16 @@ log "=========================================="
 log "Checking if 3 days have passed since last run..."
 if [ -f "$LAST_RUN_FILE" ]; then
     LAST_RUN=$(cat "$LAST_RUN_FILE")
+    
+    # Validate that LAST_RUN contains only digits
+    if ! [[ "$LAST_RUN" =~ ^[0-9]+$ ]]; then
+        log_error "Invalid last_run file content: $LAST_RUN. Expected a Unix timestamp."
+        log "Treating this as first run and continuing..."
+        LAST_RUN=""
+    fi
+fi
+
+if [ -n "$LAST_RUN" ]; then
     CURRENT_TIME=$(date +%s)
     TIME_DIFF=$((CURRENT_TIME - LAST_RUN))
     # Calculate days with decimal using shell arithmetic (avoiding bc dependency)
@@ -43,12 +53,12 @@ if [ -f "$LAST_RUN_FILE" ]; then
     
     # Format last run date (GNU date)
     if date --version >/dev/null 2>&1; then
-        LAST_RUN_FORMATTED=$(date -d @$LAST_RUN '+%Y-%m-%d %H:%M:%S')
-        NEXT_RUN_FORMATTED=$(date -d @$((LAST_RUN + THREE_DAYS_IN_SECONDS)) '+%Y-%m-%d %H:%M:%S')
+        LAST_RUN_FORMATTED=$(date -d @$LAST_RUN '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo "unknown")
+        NEXT_RUN_FORMATTED=$(date -d @$((LAST_RUN + THREE_DAYS_IN_SECONDS)) '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo "unknown")
     else
         # BSD date (macOS)
-        LAST_RUN_FORMATTED=$(date -r $LAST_RUN '+%Y-%m-%d %H:%M:%S')
-        NEXT_RUN_FORMATTED=$(date -r $((LAST_RUN + THREE_DAYS_IN_SECONDS)) '+%Y-%m-%d %H:%M:%S')
+        LAST_RUN_FORMATTED=$(date -r $LAST_RUN '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo "unknown")
+        NEXT_RUN_FORMATTED=$(date -r $((LAST_RUN + THREE_DAYS_IN_SECONDS)) '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo "unknown")
     fi
     
     log "Last backup was performed at: $LAST_RUN_FORMATTED"
@@ -92,13 +102,13 @@ if [ -d "$PM2_LOGS_DIR" ]; then
     
     # Copy all log files to backup
     if [ "$(ls -A "$PM2_LOGS_DIR" 2>/dev/null)" ]; then
-        # Count files before backup
-        FILE_COUNT=$(find "$PM2_LOGS_DIR" -mindepth 1 -maxdepth 1 | wc -l)
-        log "Found $FILE_COUNT file(s) to backup"
+        # Use find for more reliable copying and count files in one pass
+        log "Backing up log files..."
         
-        # Use find for more reliable copying
         if find "$PM2_LOGS_DIR" -mindepth 1 -maxdepth 1 -exec cp -r {} "$BACKUP_DIR"/ \; 2>> "$LOG_FILE"; then
-            log "Logs successfully copied to $BACKUP_DIR"
+            # Count files after successful copy
+            FILE_COUNT=$(find "$BACKUP_DIR" -mindepth 1 -maxdepth 1 | wc -l)
+            log "Successfully backed up $FILE_COUNT file(s) to $BACKUP_DIR"
             
             # Clear the original logs after copying
             if find "$PM2_LOGS_DIR" -mindepth 1 -delete 2>> "$LOG_FILE"; then
@@ -123,8 +133,8 @@ log "Step 3: Restarting all PM2 processes..."
 if command -v pm2 &> /dev/null; then
     log "PM2 command found, executing restart..."
     
-    # Capture PM2 output for logging
-    PM2_OUTPUT=$(pm2 restart all 2>&1)
+    # Capture PM2 output for logging (limit to first 100 lines to prevent memory issues)
+    PM2_OUTPUT=$(pm2 restart all 2>&1 | head -n 100)
     PM2_EXIT_CODE=$?
     
     # Log the PM2 output
