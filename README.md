@@ -14,6 +14,22 @@ Automated PM2 log backup system using systemd. This script automatically backs u
 
 ## Installation
 
+### Quick Install (Recommended)
+
+Run the installation script:
+```bash
+sudo ./install.sh
+```
+
+This will automatically:
+- Copy the backup script to `/usr/local/bin/`
+- Install systemd service and timer files
+- Enable and start the automated timer
+
+### Manual Installation
+
+If you prefer to install manually:
+
 1. Copy the backup script to a system directory:
 ```bash
 sudo cp pm2-log-backup.sh /usr/local/bin/
@@ -35,6 +51,24 @@ sudo systemctl daemon-reload
 ```bash
 sudo systemctl enable pm2-log-backup.timer
 sudo systemctl start pm2-log-backup.timer
+```
+
+## Uninstallation
+
+If you want to remove the automated backup system (e.g., to run backups manually):
+
+```bash
+sudo ./uninstall.sh
+```
+
+This will:
+- Stop and disable the systemd timer and service
+- Remove all installed files
+- Optionally remove backup data (you'll be prompted)
+
+After uninstalling, you can still run backups manually:
+```bash
+sudo ./pm2-log-backup.sh
 ```
 
 ## Usage
@@ -115,6 +149,8 @@ Each log entry includes:
 - `pm2-log-backup.sh` - The main backup script
 - `pm2-log-backup.service` - Systemd service definition
 - `pm2-log-backup.timer` - Systemd timer for scheduling backups every 3 days
+- `install.sh` - Automated installation script
+- `uninstall.sh` - Automated uninstallation script
 
 ## Requirements
 
