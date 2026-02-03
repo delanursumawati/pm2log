@@ -1,11 +1,11 @@
 [Unit]
-Description=PM2 Log Backup Timer - Runs every 3 days
+Description=PM2 Log Backup Timer - Runs every 3 days at 00:00 WIB
 Documentation=https://github.com/delanursumawati/pm2log
 
 [Timer]
-# Run every 3 days (72 hours)
-OnBootSec=10min
-OnUnitActiveSec=3d
+# Trigger daily at 00:00 WIB (17:00 UTC, since WIB is UTC+7)
+# The script itself will check if 3 days have passed since last run
+OnCalendar=*-*-* 17:00:00
 # If the system was off when the timer should have triggered, run it on next boot
 Persistent=true
 

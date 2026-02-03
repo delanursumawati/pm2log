@@ -66,13 +66,15 @@ sudo systemctl disable pm2-log-backup.timer
 
 The backup process follows these steps:
 
-1. **Delete old backup**: Removes all files in `/root/.pm2backup/logs` if the directory exists
-2. **Move logs to backup**: Copies all log files from `/root/.pm2/logs` to `/root/.pm2backup/logs`, then clears the original logs
-3. **Restart PM2 processes**: Executes `pm2 restart all` to restart all PM2-managed processes
+1. **Check 3-day interval**: Verifies that at least 3 days (72 hours) have passed since the last backup. If not, the script exits without performing a backup.
+2. **Delete old backup**: Removes all files in `/root/.pm2backup/logs` if the directory exists
+3. **Move logs to backup**: Copies all log files from `/root/.pm2/logs` to `/root/.pm2backup/logs`, then clears the original logs
+4. **Restart PM2 processes**: Executes `pm2 restart all` to restart all PM2-managed processes
+5. **Record timestamp**: Saves the current timestamp to track when the backup was performed
 
 The timer is configured to:
-- Run 10 minutes after system boot (first run)
-- Run every 3 days (72 hours) thereafter
+- Trigger daily at 00:00 WIB (17:00 UTC)
+- The script checks if 3 days have passed since the last backup before executing
 - Persist across reboots (if a scheduled backup was missed, it will run on next boot)
 
 ## File Descriptions

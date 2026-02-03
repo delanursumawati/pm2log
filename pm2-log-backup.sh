@@ -5,6 +5,23 @@
 # Set variables
 PM2_LOGS_DIR="/root/.pm2/logs"
 BACKUP_DIR="/root/.pm2backup/logs"
+LAST_RUN_FILE="/root/.pm2backup/last_run"
+THREE_DAYS_IN_SECONDS=$((3 * 24 * 60 * 60))  # 3 days in seconds
+
+# Create backup directory if it doesn't exist
+mkdir -p "$(dirname "$LAST_RUN_FILE")"
+
+# Check if 3 days have passed since last run
+if [ -f "$LAST_RUN_FILE" ]; then
+    LAST_RUN=$(cat "$LAST_RUN_FILE")
+    CURRENT_TIME=$(date +%s)
+    TIME_DIFF=$((CURRENT_TIME - LAST_RUN))
+    
+    if [ $TIME_DIFF -lt $THREE_DAYS_IN_SECONDS ]; then
+        echo "Last backup was $(($TIME_DIFF / 86400)) days ago. Skipping (need 3 days interval)."
+        exit 0
+    fi
+fi
 
 # Step 1: Delete old backup folder contents if exists
 echo "Step 1: Cleaning up old backup..."
@@ -49,3 +66,6 @@ else
 fi
 
 echo "Backup completed successfully at $(date)"
+
+# Save the current timestamp for next run check
+date +%s > "$LAST_RUN_FILE"
